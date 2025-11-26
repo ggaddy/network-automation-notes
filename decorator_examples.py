@@ -101,7 +101,6 @@ class math:
     def multiply(self) -> int:
         return self.x * self.y
 
-    @log_execution
     def divide(self) -> float:
         return self.x / self.y
 
@@ -109,11 +108,21 @@ class math:
         return f"math: x={self.x} y={self.y}"
 
 
+class math_logging(math):
+    @log_execution
+    def multiply(self) -> int:
+        return self.x * self.y
+
+    @log_execution
+    def divide(self) -> float:
+        return self.x / self.y
+
+
 if __name__ == "__main__":
-    t1 = math(1, 2)
+    t1 = math_logging(1, 2)
     print(t1)
     print(f"multiply: {t1.multiply()}")
-    t2 = math(2, 4)
+    t2 = math_logging(2, 4)
     print(t2)
     print(f"multiply: {t2.multiply()}")
     print(f"divide: {t2.divide()}")
