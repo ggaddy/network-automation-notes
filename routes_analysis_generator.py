@@ -16,8 +16,10 @@ bgpkit-parser rib.20250701.0000.bz2 > all_routes.txt
 """
 
 import cProfile
+import ipaddress
 import logging
 import os
+import re
 import tracemalloc
 from typing import Generator, List
 
@@ -45,7 +47,7 @@ def search_routes_for_loop(search: str) -> List[str]:
     Example function to process the routes file via a for loop
     """
 
-    logging.info(f"process_routes|starting")
+    logging.info(f"search_routes_for_loop|starting")
     result = []
     for line in stream_route_data(filepath=routes_file):
         if search in line:
@@ -58,14 +60,43 @@ def search_routes_generator(search: str) -> Generator[str, None, None]:
     Example function to process the routes file via streaming generator
     """
 
-    logging.info(f"process_routes|starting")
+    logging.info(f"search_routes_generator|starting")
     for line in stream_route_data(filepath=routes_file):
         if search in line:
             yield line
 
 
+def extract_ips_generator(
+    input: Generator[str, None, None], max_ips: int = 20
+) -> Generator[str, None, None]:
+    logging.info(f"extract_ips_generator|starting")
+    # 1. Simple Regex: Matches any 4 groups of digits separated by dots
+    candidate_pattern = r"\b(?:\d{1,3}\.){3}\d{1,3}\b"
+    unique = []
+    for line in input:
+        if len(unique) > max_ips:
+            logging.info(f"extract_ips_generator|max_ips:{max_ips} reached")
+            break
+        candidates = re.findall(candidate_pattern, line)
+        for ip in candidates:
+            if len(unique) > max_ips:
+                break
+            try:
+                ipaddress.IPv4Address(ip)
+                if ip not in unique:
+                    unique.append(ip)
+                    yield ip
+            except ipaddress.AddressValueError:
+                continue
+
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
+
+    print("\n--- Searching for IPs within the routes")
+    asn = "36351"
+    for ip in extract_ips_generator(search_routes_generator(search="36351")):
+        print(f"36351: {ip}")
 
     print("=== Time Profiling (cProfile) ===")
     print("\n--- cProfile: search_routes_for_loop ---")
