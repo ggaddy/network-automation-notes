@@ -14,6 +14,13 @@ logger = logging.getLogger(__name__)
 _base_url = "http://127.0.0.1:8000/v1"
 _token = "fake-jwt-token"
 
+"""
+Example curl command
+curl -X GET "http://127.0.0.1:8000/v1/devices" \
+     -H "Authorization: Bearer fake-jwt-token" \
+     -H "Content-Type: application/json"
+"""
+
 
 def get_all_devices(timeout: int = 1, retries: int = 3, pagination_max: int = 500) -> List[Dict]:
     """
